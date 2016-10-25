@@ -1,0 +1,82 @@
+#!/bin/bash
+
+baseDir=`realpath .`
+buildDir="${baseDir}"/build
+demoDir="${baseDir}"/demo
+manifestFile="${buildDir}"/Manifest.txt
+
+if [ ! -d "${buildDir}" ]; then
+  mkdir "${buildDir}" 
+fi
+if [ ! -d "${demoDir}" ]; then
+  mkdir "${demoDir}" 
+fi
+
+echo "---- building src ----"
+find src/main -name *.java > "${buildDir}"/buildList
+javac -d ./build @"${buildDir}"/buildList
+echo "Main-Class: main.Main" > "${manifestFile}"
+echo "---- build done ----"
+
+
+jarFile="${demoDir}"/3des.jar
+echo "---- building jar ----"
+cd ${buildDir}
+find "${buildDir}" -name *.class > "${buildDir}"/buildList
+jar cfm "${jarFile}" "${manifestFile}" encryption main utils
+cd "${baseDir}"
+
+echo "---- preparing plainText ----"
+inputFile="${demoDir}"/originalFile
+echo "This is my first 3des program." > "${inputFile}"
+
+echo "---- demo genkey ----"
+password='helloworld!'
+keyFile="${demoDir}"/keyFile
+demoKey="java -jar ${jarFile} genkey ${password} ${keyFile}"
+echo "${demoKey}"
+eval "${demoKey}"
+
+echo "----demo encrypt/decryp ECB ----"
+blockMode=ECB
+encryptOutputFile="${demoDir}/encrypt_${blockMode}"
+decryptOutputFile="${demoDir}/decrypt_${blockMode}"
+
+demoEncrypt="java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}"
+demoDecrypt="java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}"
+
+echo "${demoEncrypt}"
+java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}
+
+echo "${demoDecrypt}"
+java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}
+
+echo "----demo encrypt/decryp CBC ----"
+blockMode=CBC
+inputFile="${demoDir}"/originalFile
+encryptOutputFile="${demoDir}/encrypt_${blockMode}"
+decryptOutputFile="${demoDir}/decrypt_${blockMode}"
+
+demoEncrypt="java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}"
+demoDecrypt="java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}"
+
+echo "${demoEncrypt}"
+java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}
+
+echo "${demoDecrypt}"
+java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}
+
+echo "----demo encrypt/decryp CTR ----"
+blockMode=CTR
+inputFile="${demoDir}"/originalFile
+encryptOutputFile="${demoDir}/encrypt_${blockMode}"
+decryptOutputFile="${demoDir}/decrypt_${blockMode}"
+
+demoEncrypt="java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}"
+demoDecrypt="java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}"
+
+echo "${demoEncrypt}"
+java -jar ${jarFile} encrypt ${inputFile} ${keyFile} ${encryptOutputFile} ${blockMode}
+
+echo "${demoDecrypt}"
+java -jar ${jarFile} decrypt ${encryptOutputFile} ${keyFile} ${decryptOutputFile} ${blockMode}
